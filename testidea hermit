@@ -1,0 +1,18 @@
+def __init__(self, x, y, dydx, axis=0, extrapolate=None):
+        if extrapolate is None:
+            extrapolate = True
+
+        x, dx, y, axis, dydx = prepare_input(x, y, axis, dydx)
+
+        dxr = dx.reshape([dx.shape[0]] + [1] * (y.ndim - 1))
+        slope = np.diff(y, axis=0) / dxr
+        t = (dydx[:-1] + dydx[1:] - 2 * slope) / dxr
+
+        c = np.empty((4, len(x) - 1) + y.shape[1:], dtype=t.dtype)
+        c[0] = t / dxr
+        c[1] = (slope - dydx[:-1]) / dxr - t
+        c[2] = dydx[:-1]
+        c[3] = y[:-1]
+
+        super(CubicHermiteSpline, self).__init__(c, x, extrapolate=extrapolate)
+        self.axis = axis
